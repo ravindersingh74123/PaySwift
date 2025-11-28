@@ -31,7 +31,6 @@
 //     </div>
 // }
 
-
 // "use client"
 // import { Button } from "@/ui/src/button";
 // import { Card } from "@/ui/src/card";
@@ -54,7 +53,7 @@
 //                             placeholder={"Number"}
 //                             label="Number"
 //                             onChange={(value) => {setNumber(value);setMessage("");}}
-                            
+
 //                         />
 //                         <TextInput
 //                             placeholder={"Amount"}
@@ -88,8 +87,6 @@
 //     );
 // }
 
-
-
 "use client";
 import { Button } from "@/ui/src/button";
 import { Card } from "@/ui/src/card";
@@ -97,18 +94,20 @@ import { Center } from "@/ui/src/Center";
 import { TextInput } from "@/ui/src/TextInput";
 import { useState } from "react";
 import { p2pTransfer } from "../app/lib/actions/p2pTransfer";
+import { useRouter } from "next/navigation";
 
 export function SendCard() {
   const [number, setNumber] = useState("");
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
 
+  const router = useRouter();
+
   return (
     <div className=" flex items-center justify-center">
       <Center>
         <Card title="Send">
           <div className="w-80 sm:w-96 space-y-6 pt-4">
-
             <TextInput
               placeholder="Enter mobile number"
               label="Phone Number"
@@ -131,11 +130,39 @@ export function SendCard() {
               <Button
                 onClick={async () => {
                   setMessage("");
+
                   try {
-                    await p2pTransfer(number, Number(amount) * 100);
-                    setMessage("Money sent successfully!");
-                  } catch {
-                    setMessage("Failed to send money.");
+                    const response = await p2pTransfer(
+                      number,
+                      Number(amount) * 100
+                    );
+
+                    setMessage(response?.message ?? "Money sent successfully!");
+                    setTimeout(() => {
+        router.refresh(); 
+      }, 1000);
+                  } catch (err: unknown) {
+                    console.error(err);
+
+                    let errorMessage =
+                      "Something went wrong. Please try again.";
+
+                    // Narrow the type safely
+                    if (err instanceof Error) {
+                      errorMessage = err.message;
+                    }
+
+                    // Optional: If you're using axios or fetch with structured error response:
+                    if (
+                      typeof err === "object" &&
+                      err !== null &&
+                      "response" in err &&
+                      typeof (err as any).response?.data?.message === "string"
+                    ) {
+                      errorMessage = (err as any).response.data.message;
+                    }
+
+                    setMessage(errorMessage);
                   }
                 }}
               >
@@ -154,11 +181,9 @@ export function SendCard() {
                 {message}
               </div>
             )}
-
           </div>
         </Card>
       </Center>
     </div>
   );
 }
-
