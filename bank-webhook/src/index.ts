@@ -73,7 +73,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import express from "express";
-import prisma from "@db";
+import prisma from "../../db/index.js";
 
 const app = express();
 console.log('Loaded DATABASE_URL:', process.env.DATABASE_URL);
